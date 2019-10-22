@@ -1,0 +1,252 @@
+---
+title: "Assignment 7"
+author: "Kyle Walker"
+date: "10/23/2019"
+output: html_document
+---
+#### 1. Write a function: input a number x and return x^2 + 3x + 1
+```{r}
+quad <- function(x) {
+  return( x^2 + 3*x + 1)
+}
+quad(2)
+```
+
+#### 2. Not using loops, write a function: input a vector and return the product of all the entries in the vector.
+```{r}
+prod_vect <- function(x) {
+  prod(x)
+}
+
+test <- c(1,2,3,4,5)
+
+prod_vect(test)
+```
+
+#### 3. Using loops, write a function: input a vector and return the product of all the entries in the vector.
+```{r}
+prod_loop <- function(x) {
+  product <- 1
+  for (i in x) {
+    product <- product * i
+  }
+  return(product)
+}
+
+test <- c(1:10)
+
+prod_loop(test)
+```
+
+#### 4. Use the above approach to write to caculate or plot
+#### • (a) the rows sum squares of matrix x above.
+```{r}
+x = matrix(c(1:9), nrow=3)
+
+apply(x, MARGIN = 1, function(y){sum(y^2)})
+```
+
+#### • (b) the row sums of positive entries in y, where y is a 100x100 matrix with the entries following standard normal distribution.
+```{r}
+y = matrix(rnorm(10000), nrow=100)
+
+apply(y, MARGIN = 1, function(x){
+      z <- 0
+      for (i in x) {
+          if(i > 0) {
+            z <- z + i
+          }
+          else {
+            z <- z
+          }
+      }
+      z
+  }
+)
+
+```
+
+#### • (c) the row sums square of entries in y, where y is a 100x100 matrix with the entries following standard normal distribution. What is the distribution of these sum squares?
+```{r}
+c <- apply(y, 1, function(x) {sum(x^2)})
+hist(c)
+# This is a chi-square distribution
+```
+
+#### • (d) the historgrams for each rows in z, where z is a 3x1000 matrix with the entries following standard normal distribution.
+```{r}
+z = matrix(rnorm(3000), nrow=3)
+
+apply(z, 1, function(x){hist(x)})
+```
+
+#### 5. Write a function:
+#### • input a vector v and a value n
+#### • out the original vector with its missing data in v being replaced by n.
+#### v could be a numeric or characrer vector and n could be a number or a string. If there is no missing value, return v and the message There is no missing value.
+
+```{r}
+na_replace <- function(v, n) {
+  if(sum(is.na(v)) == 0) {
+    print(v)
+    print("There is no missing value.")
+  } else {
+    v[is.na(v)] <- n
+    v
+  }
+}
+
+v <- c("1","2","3")
+n <- 3
+na_replace(v, n)
+
+
+```
+
+#### 6. Write a function:
+#### • input a numeric vector
+#### • output the original vector with its missing data being replaced by the mean of the vector. If there is no missing value, return the original vector with the message There is no missing value.
+```{r}
+mean_replace <- function(v) {
+  if(sum(is.na(v)) == 0) {
+    print(v)
+    print("There is no missing value.")
+  } else {
+    v[is.na(v)] <- mean(v, na.rm=T)
+    v
+  }
+}
+
+v <- c(1,2,3, NA)
+mean_replace(v)
+```
+
+#### 7. Write a function:
+#### • input a character/factor vector
+#### • output a vector with its missing data being replaced by the mode of the vector. If there is no missing value, return the original vector with the message There is no missing value.
+```{r}
+mode_replace <- function(v) {
+  if(sum(is.na(v)) == 0) {
+    print(v)
+    print("There is no missing value.")
+  } else {
+    v[is.na(v)] <- v[which.max(tabulate(match(v,unique(v))))]
+    v
+  }
+}
+
+v <- c(1,2,2, NA)
+mode_replace(v)
+```
+
+#### 8. Write a function:
+#### • input a data frame
+#### • output the data frame with numeric missing values being replaced by the corresponding column mean and categorical missing values being replaced by the corresponding column mode.
+#### Check to confirm that the function works with the titanic dataset.
+```{r}
+library(readr)
+titanic <- as.data.frame(read_csv(file = "C:/Users/student/Documents/Senior Year/MATH 421/titanic.csv"))
+sum(is.na(titanic))
+```
+
+```{r}
+df_mean_replace <- function(d) {
+  if(sum(is.na(d)) == 0) {
+    print(d)
+    print("There are no missing values.")
+  } else {
+      for (i in 1:length(d)) {
+        if(is.numeric(d[,i])){
+          d[,i][is.na(d[,i])] <- mean(d[,i], na.rm=T)
+        }
+        if(is.character(d[,i])) {
+          ux <- unique(d[,i])
+          tab <- tabulate(match(d[,i], ux))
+          d[,i][is.na(d[,i])] <- sample(as.character(d[,i][tab == max(tab)]),1)
+        }
+      }
+  }
+  return(d)
+}
+
+sum(is.na(df_mean_replace(titanic)))
+
+
+```
+
+#### 9. Write a function that
+#### • input two categorical variables
+#### • output the a bar chart of one variable color filled by the other variable.
+#### Check your function with two categorical variables in the titanic data
+```{r}
+library(ggplot2)
+bar_chart <- function(u,v) {
+  ggplot(, aes(x=u , fill = v)) +
+    geom_bar()
+}
+
+bar_chart(titanic$Sex, titanic$Embarked)
+```
+
+#### 10. Write a function that
+#### • input an data frame
+#### • output all the possible bar charts of a categorical variable filled by another categorical variables where both of the two variables must have the number of categories less than 4.
+#### Check your function on the titanic data
+```{r}
+library(tidyverse)
+all_bar <- function(d) {
+  d <- d %>% 
+    select_if(is.character) %>% 
+      select_if(~length(table(.)) < 4)
+  for(i in 2:length(d)) {
+    print(ggplot(d, aes(x=d[,1], fill = d[,i])) +
+        geom_bar())
+  }
+}
+all_bar(titanic)
+```
+
+#### 11. Write a function for a quick visualization that input a (cleaned) data and a number k and output the follows
+#### • If k = 1, output all the possible bar charts of a categorical variable filled by another categorical variables where both of the two variables must have the number of categories less than 4.
+#### • If k = 2, output all the possible density curve (using geom_density), i.e. density curves of all numeric variables
+#### • If k = 3, all possible density curves of all numeric variables coloring by a categorical variable with the number of categories less than 4.
+```{r}
+k_graphing <- function(d, k) {
+  if(k == 1) {
+    d <- d %>% 
+      select_if(is.character) %>% 
+        select_if(~length(table(.)) < 4)
+  for(i in 2:length(d)) {
+    print(ggplot(d, aes(x=d[,1], fill = d[,i])) +
+        geom_bar())
+   }
+  }
+  if(k == 2) {
+    d <- d %>% 
+      select_if(is.numeric)
+    for (i in 1:length(d)) {
+      print(ggplot(d, aes(x=d[,i])) +
+      geom_density() +
+        labs(x= colnames(d[i])))
+    }
+  }
+  if(k == 3) {
+   dc <- d %>% 
+      select_if(is.character) %>% 
+        select_if(~length(table(.)) < 4)
+    dn <- d %>% 
+      select_if(is.numeric)
+    for (i in 1:length(dn)) {
+      for(j in 1:length(dc)) {
+        print(ggplot(, aes(x=dn[,i], color = dc[,j])) +
+          geom_density() +
+            labs(y= "Density",
+                 x = colnames(d[j])))
+      }
+      
+    }
+  }
+}
+k_graphing(titanic, 3)
+```
+
