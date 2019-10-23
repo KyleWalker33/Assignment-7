@@ -146,6 +146,8 @@ mode_replace(v)
 ```{r}
 library(readr)
 titanic <- as.data.frame(read_csv(file = "C:/Users/student/Documents/Senior Year/MATH 421/titanic.csv"))
+titanic$Survived <- as.character(titanic$Survived)
+titanic$Pclass <- as.character(titanic$Pclass)
 sum(is.na(titanic))
 ```
 
@@ -198,9 +200,13 @@ all_bar <- function(d) {
   d <- d %>% 
     select_if(is.character) %>% 
       select_if(~length(table(.)) < 4)
-  for(i in 2:length(d)) {
-    print(ggplot(d, aes(x=d[,1], fill = d[,i])) +
-        geom_bar())
+  for (i in 1:length(d)){
+    for(j in 1:length(d)) {
+      print(ggplot(d, aes(x=d[,i], fill = d[,j])) +
+          geom_bar() +
+          labs(x= colnames(d[i]),
+               fill = names(d[j])))
+    }
   }
 }
 all_bar(titanic)
@@ -213,13 +219,7 @@ all_bar(titanic)
 ```{r}
 k_graphing <- function(d, k) {
   if(k == 1) {
-    d <- d %>% 
-      select_if(is.character) %>% 
-        select_if(~length(table(.)) < 4)
-  for(i in 2:length(d)) {
-    print(ggplot(d, aes(x=d[,1], fill = d[,i])) +
-        geom_bar())
-   }
+   all_bar(d)
   }
   if(k == 2) {
     d <- d %>% 
@@ -241,12 +241,12 @@ k_graphing <- function(d, k) {
         print(ggplot(, aes(x=dn[,i], color = dc[,j])) +
           geom_density() +
             labs(y= "Density",
-                 x = colnames(d[j])))
+                 x = colnames(d[j]), color = names(dc)[j]))
       }
       
     }
   }
 }
-k_graphing(titanic, 3)
+k_graphing(titanic, 1)
 ```
 
